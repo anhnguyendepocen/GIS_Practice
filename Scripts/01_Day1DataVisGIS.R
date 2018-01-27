@@ -3,7 +3,13 @@
 # Making plots with base R 
 # Makng plots with ggplot
 # XKCD styled plots
-# Interactive plots
+# Interactive plots 
+    # ggiraph
+    # plotly
+    # googleVis
+# Animated plots 
+    # animation 
+    # gganimate 
 
 library(ggplot2)
 library(ggmap)
@@ -259,4 +265,151 @@ t <- merge (temp1, land, by = "Year")
 
 names(t) <- c("Year", "Sea", "Land")
 
+library(DT)
+datatable(t)
 
+# Now we can look to build a ggplot 
+
+pp <- ggplot (data = t, aes(x=Year)) +
+  geom_line(aes(y = Sea, colour = "Sea"), size = 1) +
+  geom_line(aes(y = Land, colour = "Land"), size = 1) +
+  scale_colour_manual("",
+                      breaks = c("Land", "Sea"),
+                      values = c("darkgreen", "blue")) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  labs(y = "Median sea & land temperature anomaly (relative to 1961-1990)") +
+  scale_x_continuous(breaks = c(1880, 1890, 1900, 1910, 1920, 
+                                1930, 1940, 1950, 1960, 1970, 
+                                1980, 1990, 2000, 2010, 2016)) +
+  scale_y_continuous(breaks = c(-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1, 1.2)) +
+  theme(panel.background = element_rect(fill = "ivory2")) +
+  theme(plot.background = element_rect(fill = "ivory2")) 
+pp
+
+# This makes it interactive, YAY
+ggplotly(pp)
+
+# Now try this using google vis 
+
+library(googleVis)
+
+line <- gvisLineChart(t, options = list(title = "Global Temperature Time Series"))
+plot(line)
+
+
+print(line, file = "Graphs/GoogleVis_land_sea.htm")
+
+library(googleVis)
+
+line <- gvisLineChart(t, options = list(title = "Global Temperature Time Series"))
+plot(line)
+
+library(ggvis)
+library(dplyr)
+land %>%
+  ggvis(~Year, ~Median,
+        fill := input_text(label = "Choose color:",
+                           value = "black")) %>%
+  layer_points() %>%
+  add_axis("x", 
+           title = "Year", 
+           values = c(1880, 1890, 1900, 1910, 1920, 
+                      1930, 1940, 1950, 1960, 1970, 
+                      1980, 1990, 2000, 2010, 2016), 
+           orient = "bottom") %>%
+  add_axis("y", 
+           title = "Median global land temperature anomaly (relative to 1961-1990)", 
+           values = c(-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1, 1.2), 
+           orient = "left")
+
+plot <- ggvis(t) %>%
+  layer_points(x = ~Year, y= ~Sea, fill := "blue", 
+               size := input_slider(0, 500, label = "Data point size (Sea)"), 
+               opacity := 0.5) %>%
+  layer_points(x = ~Year, y= ~Land, fill := "green",
+               size := input_slider(0, 500, label = "Data point size (Land)"), 
+               opacity := 0.5) %>%
+  add_axis("x", 
+           title = "Year", 
+           values = c(1880, 1890, 1900, 1910, 1920, 
+                      1930, 1940, 1950, 1960, 1970, 
+                      1980, 1990, 2000, 2010, 2016), 
+           orient = "bottom") %>%
+  add_axis("y", 
+           title = "Median sea & land temperature anomaly (relative to 1961-1990)", 
+           values = c(-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1, 1.2), 
+           orient = "left")
+plot
+
+# -------------
+# Animated plot
+# -------------
+
+library(devtools)
+library(animation)
+devtools::install_github("dgrtwo/gganimate")
+library(gganimate)
+
+keeling <- read.csv("Data/keeling.csv")
+keeling
+
+ggplot(data = keeling, aes(Year, CO2)) + 
+  geom_point(colour = "blue", size = 1) +
+  labs(title = "Keeling curve") +
+  geom_hline(yintercept = 400, linetype = "dashed") +
+  labs(y = "Cabon-dioxide concentration (ppm)") +
+  scale_x_continuous(breaks=c(1960, 1965, 1970, 1975, 1980,
+                              1985, 1990, 1995, 2000, 2005,
+                              2010, 2015)) +
+  scale_y_continuous(breaks=c(320, 330, 340, 350, 
+                              360, 370, 380, 390, 
+                              400)) +
+  theme(panel.background = element_rect(fill = "white"),
+        plot.background = element_rect(fill = "white"),
+        axis.text = element_text(colour = "black"),
+        axis.title.x = element_blank())
+
+library(plyr)
+
+# Calculate the yearly mean 
+
+keeling2 <- ddply(keeling, .(Year), summarize, Mn = mean(Mn), CO2 = mean(CO2))
+keeling2$Source <- rep("ML", nrow(keeling2))
+keeling2
+
+# Plot this. Attention to geom_path - cumulative and group, which is the new column.
+library(ggplot2)
+carbon <- ggplot(data = keeling2, aes(Year, CO2, frame = Year)) + 
+  geom_point(colour = "blue", size = 2) +
+  geom_line(colour = "blue", size = 1) +
+  labs(title = "Keeling curve") +
+  geom_hline(yintercept = 400, linetype = "dashed") +
+  labs(y = "Carbon-dioxide concentration (ppm)") +
+  geom_path(aes(cumulative = TRUE, group = Source)) +
+  scale_x_continuous(breaks=c(1960, 1965, 1970, 1975, 1980,
+                              1985, 1990, 1995, 2000, 2005,
+                              2010, 2016)) +
+  scale_y_continuous(breaks=c(320, 330, 340, 350, 
+                              360, 370, 380, 390, 
+                              400)) +
+  theme(panel.background = element_rect(fill = "white"),
+        plot.background = element_rect(fill = "white"),
+        axis.text = element_text(colour = "black"),
+        axis.title.x = element_blank())
+
+carbon
+
+# define the speed that the line will form in the animation 
+
+ani.options(interval = .2)
+
+# now animate your GIF 
+
+gganimate(carbon, "keeling.gif", ani.width = 600, ani.height = 400)
+
+require(installr)
+
+install.packages("magick")
+library(magick)
+
+library(knitr)
