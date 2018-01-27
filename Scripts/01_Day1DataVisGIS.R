@@ -248,6 +248,15 @@ gg <- ggplot(data = land,
 ggiraph(code = {print(gg)}, hover_css = "stroke:red;")
 
 
+# Interactive graphs using ggplotly
 
+library(tidyverse)
+library(plotly)
+
+# Merge the two datasets 
+
+t <- merge (temp1, land, by = "Year")
+
+names(t) <- c("Year", "Sea", "Land")
 
 
