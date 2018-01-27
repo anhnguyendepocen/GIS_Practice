@@ -232,9 +232,20 @@ library(devtools)
 
 # Install the package ggiraph from github
 devtools::install_github("davidgohel/ggiraph")
+
 library(ggiraph)
+gg <- ggplot(data = land, 
+             aes(Year, Median, colour = Median, tooltip = Median, data_id = Median)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(y = "Median land temperature anomaly (relative to 1961-1990)") +
+  scale_x_continuous(breaks = c(1880, 1890, 1900, 1910, 1920, 
+                                1930, 1940, 1950, 1960, 1970, 
+                                1980, 1990, 2000, 2010)) +
+  scale_y_continuous(breaks = c(-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1, 1.2)) +
+  theme(legend.position="none") +
+  geom_line_interactive(size = .75)
 
-
+ggiraph(code = {print(gg)}, hover_css = "stroke:red;")
 
 
 
