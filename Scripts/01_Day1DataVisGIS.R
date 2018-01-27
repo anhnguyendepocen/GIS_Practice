@@ -184,9 +184,7 @@ display.brewer.all()
 # -----------------
 library(xkcd)
 
-font_import()
 
-loadfonts()
 
 library(extrafont)
 library(ggplot2)
@@ -237,7 +235,7 @@ library(tidyverse)
 library(devtools)
 
 # Install the package ggiraph from github
-devtools::install_github("davidgohel/ggiraph")
+# devtools::install_github("davidgohel/ggiraph")
 
 library(ggiraph)
 gg <- ggplot(data = land, 
