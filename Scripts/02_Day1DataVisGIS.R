@@ -124,5 +124,4 @@ ggplot() +
     plot.title = element_text(hjust = 0.5),
     legend.position = "none")
 
-# Carry on 
 

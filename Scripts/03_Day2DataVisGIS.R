@@ -186,3 +186,5 @@ m <- addScaleBar(m, position = c("bottomleft"))
 m
 
 
+
+
